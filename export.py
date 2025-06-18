@@ -44,8 +44,15 @@ model.eval()
 input_names = ["input_0"]
 output_names = ["output_0"]
 
-device = next(model.parameters()).device
-inputs = torch.randn(1, C, H, W).to(device)
+# device = next(model.parameters()).device
+# inputs = torch.randn(1, C, H, W).to(device)
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
+model.eval()
+
+# now inputs and model live on the same device
+inputs = torch.randn(1, C, H, W, device=device)
 
 dynamic_axes = {'input_0': {0: 'batch_size'},
                 'output_0': {0: 'batch_size'}}
@@ -73,6 +80,7 @@ except ModuleNotFoundError:
 print('>>> Converting to TRT')
 trt_ts_module = torch_tensorrt.compile(model,
     # If the inputs to the module are plain Tensors, specify them via the `inputs` argument:
+    ir="ts",
     inputs = [
         torch_tensorrt.Input( # Specify input object with shape and dtype
             shape=[1, C, H, W],
