@@ -1,0 +1,18 @@
+services:
+  easy_vitpose:
+    container_name: easy_vitpose
+    image: easy_vitpose
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command: tail -f /dev/null
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["1"]
+              capabilities: [gpu]
