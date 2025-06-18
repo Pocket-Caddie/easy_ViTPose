@@ -13,3 +13,4 @@ outputs
 easy_ViTPose.egg-info
 *.mp4
 *.json
+*.mov
