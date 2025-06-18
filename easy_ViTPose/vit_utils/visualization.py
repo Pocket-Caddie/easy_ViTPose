@@ -436,7 +436,7 @@ def draw_skeleton(image, points, skeleton, color_palette='Set2', palette_samples
         if pt1[2] > confidence_threshold and pt2[2] > confidence_threshold:
             image = cv2.line(
                 image, (int(pt1[1]), int(pt1[0])), (int(pt2[1]), int(pt2[0])),
-                tuple(colors[person_index % len(colors)]), 2
+                tuple(colors[person_index % len(colors)]), 4
             )
 
     return image

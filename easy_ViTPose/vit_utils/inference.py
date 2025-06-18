@@ -70,25 +70,64 @@ def pad_image(image: np.ndarray, aspect_ratio: float) -> np.ndarray:
     return padded_image, (left_pad, top_pad)
 
 
-class VideoReader(object):
-    def __init__(self, file_name, rotate=0):
-        self.file_name = file_name
-        self.rotate = rotation_map[rotate]
-        try:  # OpenCV needs int to read from webcam
-            self.file_name = int(file_name)
-        except ValueError:
-            pass
+# ── use GPU-accelerated video reader ──────────────────────────
+from .video_reader_fast import VideoReader as _FastVideoReader
+VideoReader = _FastVideoReader
 
-    def __iter__(self):
-        self.cap = cv2.VideoCapture(self.file_name)
-        if not self.cap.isOpened():
-            raise IOError('Video {} cannot be opened'.format(self.file_name))
-        return self
+# import threading, queue, cv2
 
-    def __next__(self):
-        was_read, img = self.cap.read()
-        if not was_read:
-            raise StopIteration
-        if self.rotate is not None:
-            img = cv2.rotate(img, self.rotate)
-        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+# class VideoReader(object):
+#     def __init__(self, file_name, rotate=0, max_prefetch=32):
+#         print("using fast video reader")
+#         self.file_name = file_name
+#         self.rotate = rotation_map[rotate]
+#         self.queue = queue.Queue(max_prefetch)
+#         self.thread = threading.Thread(target=self._reader, daemon=True)
+#         self.thread.start()
+
+#     def _reader(self):
+#         cap = cv2.VideoCapture(self.file_name)
+#         if not cap.isOpened():
+#             raise IOError(f'Cannot open {self.file_name}')
+#         while True:
+#             ret, frame = cap.read()
+#             if not ret:
+#                 break
+#             if self.rotate is not None:
+#                 frame = cv2.rotate(frame, self.rotate)
+#             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#             self.queue.put(rgb)
+#         self.queue.put(None)  # sentinel
+
+#     def __iter__(self):
+#         return self
+
+#     def __next__(self):
+#         item = self.queue.get()
+#         if item is None:
+#             raise StopIteration
+#         return item
+
+
+# class VideoReader(object):
+#     def __init__(self, file_name, rotate=0):
+#         self.file_name = file_name
+#         self.rotate = rotation_map[rotate]
+#         try:  # OpenCV needs int to read from webcam
+#             self.file_name = int(file_name)
+#         except ValueError:
+#             pass
+
+#     def __iter__(self):
+#         self.cap = cv2.VideoCapture(self.file_name)
+#         if not self.cap.isOpened():
+#             raise IOError('Video {} cannot be opened'.format(self.file_name))
+#         return self
+
+#     def __next__(self):
+#         was_read, img = self.cap.read()
+#         if not was_read:
+#             raise StopIteration
+#         if self.rotate is not None:
+#             img = cv2.rotate(img, self.rotate)
+#         return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
